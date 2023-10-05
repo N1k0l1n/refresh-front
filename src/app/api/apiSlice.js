@@ -3,7 +3,7 @@ import { setCredentials, logOut } from "../../features/auth/authSlice";
 
 const baseQuery = fetchBaseQuery({
   //backend url
-  baseUrl: "https://localhost:7153/",
+  baseUrl: "https://localhost:7153",
   //This will send back our http only secure cookie
   credentials: "include",
   prepareHeaders: (headers, { getState }) => {
@@ -43,9 +43,8 @@ const baseQueryWithReauth = async (args, api, extraOtions) => {
   return result;
 };
 
-
 //Create Api
 export const apiSlice = createApi({
-    baseQuery : baseQueryWithReauth,
-    endpoints : builder => ({})
-})
+  baseQuery: baseQueryWithReauth,
+  endpoints: (builder) => ({}),
+});

@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+//import "../styles/Login.css";
 
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../features/auth/authSlice";
@@ -8,10 +9,9 @@ import { useLoginMutation } from "../features/auth/authApiSlice";
 const Login = () => {
   const userRef = useRef();
   const errRef = useRef();
-  const [user, setUser] = useState("");
-  const [password, setPassword] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
-
+  const [username, setUsername] = useState("");
+  const [password, SetPassword] = useState("");
+  const [errMsg, setErrMsg] = useState("");
   const navigate = useNavigate();
 
   const [login, { isLoading }] = useLoginMutation();
@@ -22,69 +22,77 @@ const Login = () => {
   }, []);
 
   useEffect(() => {
-    setErrorMessage("");
-  }, [user, password]);
+    setErrMsg("");
+  }, [username, password]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const userData = await login({ user, password }).unwrap();
-      dispatch(setCredentials({ ...userData, user }));
-      setUser("");
-      setPassword("");
+      const userData = await login({ username, password }).unwrap();
+      dispatch(setCredentials({ ...userData, username }));
+      setUsername("");
+      SetPassword("");
       navigate("/welcome");
-    } catch (error) {
-      if (!error?.response) {
-        setErrorMessage("No Server Response");
-      } else if (error.response?.status === 400) {
-        setErrorMessage("Missing Username or Password");
-      } else if (error.response?.status === 401) {
-        setErrorMessage("Unauthorized");
+    } catch (err) {
+      if (!err?.originalStatus) {
+        // isLoading: true until timeout occurs
+        setErrMsg("No Server Response");
+      } else if (err.originalStatus === 400) {
+        setErrMsg("Missing Username or Password");
+      } else if (err.originalStatus === 401) {
+        setErrMsg("Unauthorized");
       } else {
-        setErrorMessage("Login Failed");
+        setErrMsg("Login Failed");
       }
       errRef.current.focus();
     }
   };
 
-  const handleUserInput = (e) => setUser(e.target.value);
+  const handleUserInput = (e) => setUsername(e.target.value);
 
-  const handlePasswordInput = (e) => setPassword(e.target.value);
+  const handlePwdInput = (e) => SetPassword(e.target.value);
 
-  const content = isLoading ? <h1>Loading...</h1> : (
-        <section className="login">
-            <p ref={errRef} className={errorMessage ? "ErrorMessage" : "offscreen"} aria-label="login"/>
+  const content = isLoading ? (
+    <h1>Loading...</h1>
+  ) : (
+    <section className="login-container">
+      <p
+        ref={errRef}
+        className={errMsg ? "errmsg" : "offscreen"}
+        aria-live="assertive"
+      >
+        {errMsg}
+      </p>
+      <div className="login">
+        <h1>Employee Login</h1>
 
-            <h1>Employee Login</h1>
+        <form onSubmit={handleSubmit}>
+          <label htmlFor="username">Username:</label>
+          <input
+            type="text"
+            id="username"
+            ref={userRef}
+            value={username}
+            onChange={handleUserInput}
+            autoComplete="off"
+            required
+          />
 
-            <form onSubmit={handleSubmit}>
-                <label htmlFor="username">Username:</label>
-                <input
-                type="text"
-                id="username"
-                ref={useRef}
-                value={user}
-                onChange={handleUserInput}
-                autoComplete="off"
-                required
-                />
-                 <label htmlFor="password">Password:</label>
-                <input
-                type="text"
-                id="password"
-                ref={useRef}
-                value={password}
-                onChange={handlePasswordInput}
-                autoComplete="off"
-                required
-                />
-                <button>Sign In</button>
-            </form>
-        </section>
-  )
+          <label htmlFor="password">Password:</label>
+          <input
+            type="password"
+            id="password"
+            onChange={handlePwdInput}
+            value={password}
+            required
+          />
+          <button>Sign In</button>
+        </form>
+      </div>
+    </section>
+  );
 
   return content;
 };
-
 export default Login;
